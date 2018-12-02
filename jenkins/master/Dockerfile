@@ -1,4 +1,4 @@
-from jenkins/jenkins:latest
+FROM jenkins/jenkins:latest
 
 # Distributed Builds plugins
 RUN /usr/local/bin/install-plugins.sh ssh-slaves
