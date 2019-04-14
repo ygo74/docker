@@ -1,0 +1,14 @@
+# https://github.com/MicrosoftDocs/Virtualization-Documentation/tree/master/windows-server-container-tools/Wait-Service
+FROM microsoft/windowsservercore
+ADD tools/Wait-Service.ps1 /Wait-Service.ps1
+
+RUN net user myadmin loc@lPwd.1 /ADD
+RUN net localgroup Administrators myadmin /ADD
+
+RUN winrm set winrm/config/service @{AllowUnencrypted="true"}
+RUN winrm set winrm/config/service/auth @{Basic="true"}
+
+SHELL ["powershell", "-File"]
+CMD c:\Wait-Service.ps1 -ServiceName WinRM -AllowServiceRestart
+
+EXPOSE 5985
