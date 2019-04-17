@@ -2,23 +2,23 @@
 
 ## Commandes
 
-1. View Image history
-docker image history --no-trunc microsoft/windowsservercore
-docker image history --no-trunc ygo74/winrmenabled
-docker image inspect ygo74/winrmenableddokcer
+1. View Image history  
+docker image history --no-trunc microsoft/windowsservercore  
+docker image history --no-trunc ygo74/winrmenabled  
+docker image inspect ygo74/winrmenableddokcer  
 
-2. Run a Container
-docker run --detach --name windows  microsoft/windowsservercore ping -t localhost
-docker run --detach --name windows -p 9985:5985  ygo74/winrmenabled
-docker run -it -name windows  microsoft/windowsservercore
+2. Run a Container  
+docker run --detach --name windows  microsoft/windowsservercore ping -t localhost  
+docker run --detach --name windows -p 9985:5985  ygo74/winrmenabled  
+docker run -it -name windows  microsoft/windowsservercore  
 
-3. Attach to a container
+3. Attach to a container  
 
 | docker attach 2b0e5afcbbed              |
 | docker exec -ti 2b0e5afcbbed powershell |
 |  Enter-PSSession -ContainerId (docker ps --no-trunc -qf "name=windows") -RunAsAdministrator |
 
-4. Remove container
+4. Remove container  
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Remove all stopped containers | docker container prune |
@@ -33,7 +33,7 @@ docker run -it -name windows  microsoft/windowsservercore
 
 | Topic | Link |
 | ----- | ---- |
-Running Docker on bash on Windows | https://blog.jayway.com/2017/04/19/running-docker-on-bash-on-windows/
+| Running Docker on bash on Windows | https://blog.jayway.com/2017/04/19/running-docker-on-bash-on-windows/ |
 
 
 **Configure Docker on WSL**
@@ -53,3 +53,7 @@ alias docker-compose=docker-compose.exe
 export DOCKER_HOST='tcp://0.0.0.0:2375'
 EOT
 ```
+
+**Issues**
+1. Shared Drives issues with Shared Drives  
+Set-NetConnectionProfile -interfacealias "vEthernet (DockerNAT)" -NetworkCategory Private
