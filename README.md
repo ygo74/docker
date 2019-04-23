@@ -33,7 +33,15 @@ docker run -it -name windows  microsoft/windowsservercore
 
 | Topic | Link |
 | ----- | ---- |
+| Install Docker on Windows         | https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-server |
 | Running Docker on bash on Windows | https://blog.jayway.com/2017/04/19/running-docker-on-bash-on-windows/ |
+
+**Install Docker**
+```powershell
+Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
+Install-Package -Name docker -ProviderName DockerMsftProvider
+Restart-Computer -Force
+```
 
 
 **Configure Docker on WSL**
