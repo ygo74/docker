@@ -34,13 +34,50 @@ docker run -it -name windows  microsoft/windowsservercore
 | Topic | Link |
 | ----- | ---- |
 | Install Docker on Windows         | https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-server |
+| Install Docker on Windows         | https://docs.docker.com/install/windows/docker-ee/ |
 | Running Docker on bash on Windows | https://blog.jayway.com/2017/04/19/running-docker-on-bash-on-windows/ |
 
-**Install Docker**
+**Install Docker with Internet Access**
 ```powershell
 Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider
 Restart-Computer -Force
+```
+
+**Install Docker without Internet Access**
+```powershell
+# On an online machine, download the zip file.
+Invoke-WebRequest -UseBasicParsing -OutFile docker-18.09.5.zip https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.5.zip
+
+# Stop Docker service
+Stop-Service docker
+    
+# Extract the archive.
+Expand-Archive docker-18.09.5.zip -DestinationPath $Env:ProgramFiles -Force
+
+# Clean up the zip file.
+Remove-Item -Force docker-18.09.5.zip
+
+# Install Docker. This requires rebooting.
+$null = Install-WindowsFeature containers
+
+# Add Docker to the path for the current session.
+$env:path += ";$env:ProgramFiles\docker"
+
+# Optionally, modify PATH to persist across sessions.
+$newPath = "$env:ProgramFiles\docker;" +
+[Environment]::GetEnvironmentVariable("PATH",
+[EnvironmentVariableTarget]::Machine)
+
+[Environment]::SetEnvironmentVariable("PATH", $newPath,
+[EnvironmentVariableTarget]::Machine)
+
+# Register the Docker daemon as a service.
+dockerd --register-service
+
+# Start the Docker service.
+Start-Service docker
+
 ```
 
 
