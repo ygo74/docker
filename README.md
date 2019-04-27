@@ -3,29 +3,39 @@
 ## Commandes
 
 1. View Image history
-docker image history --no-trunc microsoft/windowsservercore
-docker image history --no-trunc ygo74/winrmenabled
-docker image inspect ygo74/winrmenableddokcer
+
+| Goal                          | Commands               |
+|-------------------------------|------------------------|
+| | docker image history --no-trunc microsoft/windowsservercore docker image history --no-trunc ygo74/winrmenabled |
+| | docker image inspect ygo74/winrmenableddokcer |
 
 2. Run a Container
-docker run --detach --name windows  microsoft/windowsservercore ping -t localhost
-docker run --detach --name windows -p 9985:5985  ygo74/winrmenabled
-docker run -it -name windows  microsoft/windowsservercore
+
+| Goal                          | Commands               |
+|-------------------------------|------------------------|
+| | docker run --detach --name windows  microsoft/windowsservercore ping -t localhost |
+| | docker run --detach --name windows -p 9985:5985  ygo74/winrmenabled |
+| | docker run -it -name windows  microsoft/windowsservercore |
 
 3. Attach to a container
 
-| docker attach 2b0e5afcbbed              |
-| docker exec -ti 2b0e5afcbbed powershell |
-|  Enter-PSSession -ContainerId (docker ps --no-trunc -qf "name=windows") -RunAsAdministrator |
+| Goal                          | Commands               |
+|-------------------------------|------------------------|
+| Attach to a container | docker attach 2b0e5afcbbed              |
+| Execute interactive command | docker exec -ti 2b0e5afcbbed powershell |
+| Enter powershell remote session | Enter-PSSession -ContainerId (docker ps --no-trunc -qf "name=windows") -RunAsAdministrator |
 
 4. Remove container
+
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Remove all stopped containers | docker container prune |
 
 5. Build imqge
 
-| docker build -t ygo74/winrmenabled -f .\windows\winrmenabled . |
+| Goal                          | Commands               |
+|-------------------------------|------------------------|
+| | docker build -t ygo74/winrmenabled -f .\windows\winrmenabled . |
 
 ## Installation
 
