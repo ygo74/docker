@@ -31,6 +31,7 @@
 |-------------------------------|------------------------|
 | Remove all stopped containers | docker container prune |
 | Remove all images             | docker rmi $(docker images -q) |
+| Remove all unused images      | docker image prune     |
 
 5. Build imqge
 
