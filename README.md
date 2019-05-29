@@ -25,11 +25,12 @@
 | Execute interactive command | docker exec -ti 2b0e5afcbbed powershell |
 | Enter powershell remote session | Enter-PSSession -ContainerId (docker ps --no-trunc -qf "name=windows") -RunAsAdministrator |
 
-4. Remove container
+4. Remove container / images
 
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Remove all stopped containers | docker container prune |
+| Remove all images             | docker rmi $(docker images -q) |
 
 5. Build imqge
 
