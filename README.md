@@ -9,12 +9,14 @@
 | | docker image history --no-trunc microsoft/windowsservercore docker image history --no-trunc ygo74/winrmenabled |
 | | docker image inspect ygo74/winrmenableddokcer |
 
+
 2. Run a Container
 
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | | docker run --detach --name windows  microsoft/windowsservercore ping -t localhost |
 | | docker run --detach --name windows -p 9985:5985  ygo74/winrmenabled |
+| | docker run --detach --name windows -p 9985:5985 -m 4GB --cpus 4 ygo74/winrmenabled |
 | | docker run -it -name windows  microsoft/windowsservercore |
 
 3. Attach to a container
@@ -30,6 +32,11 @@
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Remove all stopped containers | docker container prune |
+
+5. Inspect container
+| Goal                          | Commands               |
+|-------------------------------|------------------------|
+| | docker inspect (docker ps --no-trunc -qf "name=windows") |
 
 5. Build imqge
 
