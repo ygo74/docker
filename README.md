@@ -31,16 +31,18 @@
 
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
-| Remove all stopped containers | docker container prune |
+| Stop all containers           | docker stop $(docker ps -aq) |
+| Remove all stopped containers (Option 1) | docker rm $(docker ps -aq) |
+| Remove all stopped containers (option 2) | docker container prune |
 | Remove all images             | docker rmi $(docker images -q) |
 | Remove all unused images      | docker image prune     |
 
 5. Inspect container
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
-| | docker inspect (docker ps --no-trunc -qf "name=windows") |
+| Inspect container by name | docker inspect (docker ps --no-trunc -qf "name=windows") |
 
-5. Build imqge
+6. Build imqge
 
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
@@ -121,3 +123,14 @@ EOT
 **Issues**
 1. Shared Drives issues with Shared Drives
 Set-NetConnectionProfile -interfacealias "vEthernet (DockerNAT)" -NetworkCategory Private
+
+
+### Linux Installation
+### Post Installation steps
+(Docker documentation)[https://docs.docker.com/install/linux/linux-postinstall/]  
+
+```bash
+sudo groupadd docker
+sudo usermod -a -G docker almev0
+sudo systemctl restart docker
+```
