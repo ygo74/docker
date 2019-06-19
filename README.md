@@ -37,7 +37,7 @@
 | Remove all images             | docker rmi $(docker images -q) |
 | Remove all unused images      | docker image prune     |
 
-5. Inspect container
+5. Inspect container  
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Inspect container by name | docker inspect (docker ps --no-trunc -qf "name=windows") |
