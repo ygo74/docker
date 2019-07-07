@@ -37,7 +37,8 @@
 | Remove all images             | docker rmi $(docker images -q) |
 | Remove all unused images      | docker image prune     |
 
-5. Inspect container  
+5. Inspect container
+
 | Goal                          | Commands               |
 |-------------------------------|------------------------|
 | Inspect container by name | docker inspect (docker ps --no-trunc -qf "name=windows") |
@@ -127,7 +128,7 @@ Set-NetConnectionProfile -interfacealias "vEthernet (DockerNAT)" -NetworkCategor
 
 ### Linux Installation
 ### Post Installation steps
-(Docker documentation)[https://docs.docker.com/install/linux/linux-postinstall/]  
+(Docker documentation)[https://docs.docker.com/install/linux/linux-postinstall/]
 
 ```bash
 sudo groupadd docker
