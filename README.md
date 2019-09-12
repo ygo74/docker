@@ -59,6 +59,10 @@
 | Install Docker on Windows         | https://docs.docker.com/install/windows/docker-ee/ |
 | Running Docker on bash on Windows | https://blog.jayway.com/2017/04/19/running-docker-on-bash-on-windows/ |
 
+**Enable features**
+C:\WINDOWS\syswow64\dism.exe  /online /enable-feature /featurename:Containers /all /NoRestart  
+C:\WINDOWS\syswow64\dism.exe  /online /enable-feature /featurename:Microsoft-Hyper-V /all /NoRestart  
+
 **Install Docker with Internet Access**
 ```powershell
 Install-Module -Name DockerMsftProvider -Repository PSGallery -Force

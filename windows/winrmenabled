@@ -2,7 +2,7 @@
 FROM microsoft/windowsservercore
 ADD tools/Wait-Service.ps1 /Wait-Service.ps1
 
-RUN net user myadmin loc@lPwd.1 /ADD
+RUN net user myadmin loc@lPwd.1loc@lPwd.1 /ADD /YES
 RUN net localgroup Administrators myadmin /ADD
 
 RUN winrm set winrm/config/service @{AllowUnencrypted="true"}
