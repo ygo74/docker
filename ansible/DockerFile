@@ -1,0 +1,54 @@
+# # # https://learn.microsoft.com/fr-fr/azure/developer/ansible/configure-in-docker-container?tabs=azure-cli
+# FROM centos:7
+
+# ENV LANG en_US.UTF-8
+# ENV LC_ALL en_US.UTF-8
+
+# RUN yum check-update; \
+#     yum install -y gcc libffi-devel python3 epel-release; \
+#     yum install -y python3-pip; \
+#     yum install -y wget; \
+#     yum clean all
+
+# RUN pip3 install --upgrade pip; \
+#     pip3 install --upgrade virtualenv; \
+#     pip3 install pywinrm[kerberos]; \
+#     pip3 install pywinrm; \
+#     pip3 install jmspath; \
+#     pip3 install requests; \
+#     python3 -m pip install ansible; \
+#     ansible-galaxy collection install azure.azcollection; \
+#     pip3 install -r ~/.ansible/collections/ansible_collections/azure/azcollection/requirements-azure.txt
+
+# # https://www.rootisgod.com/2021/Automating-Azure-with-Ansible-Part-1/
+# # This is the latest Version of Python which is install to a Debian 'Buster' Image
+# FROM python:3.9.1-buster
+
+# # Get any new security and package updates
+# RUN apt-get update && apt-get upgrade -y
+
+# # Install Ansible
+# RUN pip install ansible
+
+# # Install the Azure Ansible Modules. First the required prereqs, then the actual modules
+# RUN curl -sL https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt --output ./requirements.txt && \
+#     pip install -r ./requirements.txt && \
+#     ansible-galaxy collection install azure.azcollection:1.14.0
+
+# https://learn.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops
+# https://medium.com/media-glasses/ansible-azure-and-macos-big-sur-f313e28b6e79
+
+FROM python:3.9-alpine
+
+RUN apk update && apk upgrade \
+    && apk add --no-cache --virtual .pipeline-deps readline linux-pam \
+    && apk add bash sudo shadow \
+    && apk add bash py3-pip \
+    && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make \
+    && pip --no-cache-dir install -U pip \
+    && pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt \
+    && pip install ansible \
+    && ansible-galaxy collection install azure.azcollection \
+    && apk del .pipeline-deps \
+    && apk del --purge build
+

@@ -64,6 +64,7 @@ C:\WINDOWS\syswow64\dism.exe  /online /enable-feature /featurename:Containers /a
 C:\WINDOWS\syswow64\dism.exe  /online /enable-feature /featurename:Microsoft-Hyper-V /all /NoRestart  
 
 **Install Docker with Internet Access**
+
 ```powershell
 Install-Module -Name DockerMsftProvider -Repository PSGallery -Force
 Install-Package -Name docker -ProviderName DockerMsftProvider
@@ -71,6 +72,7 @@ Restart-Computer -Force
 ```
 
 **Install Docker without Internet Access**
+
 ```powershell
 # On an online machine, download the zip file.
 Invoke-WebRequest -UseBasicParsing -OutFile docker-18.09.5.zip https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.5.zip
@@ -106,7 +108,6 @@ Start-Service docker
 
 ```
 
-
 **Configure Docker on WSL**
 
 ```bash
@@ -131,7 +132,9 @@ Set-NetConnectionProfile -interfacealias "vEthernet (DockerNAT)" -NetworkCategor
 
 
 ### Linux Installation
+
 ### Post Installation steps
+
 (Docker documentation)[https://docs.docker.com/install/linux/linux-postinstall/]
 
 ```bash
