@@ -16,7 +16,7 @@ jobs:
           containerRegistry: 'aksbootstrap'
           repository: 'ansible_azure'
           command: 'build'
-          Dockerfile: 'ansible/Dockerfile'
+          Dockerfile: 'ansible/DockerFile'
           buildContext: '.'
           tags: |
             $(tag)
