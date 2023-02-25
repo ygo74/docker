@@ -1,0 +1,32 @@
+variables:
+  # Get Ansible-Autmation secret
+  - group: azure_automation
+
+jobs:
+
+  - job: DockerBuild
+    displayName: Build and publish docker images
+    variables:
+      tag: dev
+    steps:
+
+      - task: Docker@2
+        displayName: Build Ansible container
+        inputs:
+          containerRegistry: 'aksbootstrap'
+          repository: 'ansible_azure'
+          command: 'build'
+          Dockerfile: 'ansible/Dockerfile'
+          buildContext: '.'
+          tags: |
+            $(tag)
+
+      - task: Docker@2
+        displayName: Deploy image to aksbootstrap
+        inputs:
+          containerRegistry: 'aksbootstrap'
+          repository: 'ansible_azure'
+          command: 'push'
+          tags: '$(tag)'
+
+
