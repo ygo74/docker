@@ -10,14 +10,16 @@ RUN apk update && apk upgrade \
 
 LABEL "com.azure.dev.pipelines.agent.handler.node.path"="/usr/local/bin/node"
 
-RUN apk update && apk upgrade && \
-    apk add bash py3-pip && \
-    apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make && \
-    pip --no-cache-dir install -U pip && \
-    pip install azure-cli && \
-    pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt && \
-    pip install ansible && \
-    ansible-galaxy collection install azure.azcollection && \
-    apk del --purge build
+RUN apk update && apk upgrade \
+    && apk add --no-cache --virtual .pipeline-deps readline linux-pam \
+    && apk add bash sudo shadow \
+    && apk add bash py3-pip \
+    && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make \
+    && pip --no-cache-dir install -U pip \
+    && pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt \
+    && pip install ansible \
+    && ansible-galaxy collection install azure.azcollection \
+    && apk del .pipeline-deps \
+    && apk del --purge build
 
 CMD [ "node" ]
