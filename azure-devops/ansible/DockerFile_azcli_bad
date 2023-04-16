@@ -1,5 +1,6 @@
 # https://learn.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops
 # https://medium.com/media-glasses/ansible-azure-and-macos-big-sur-f313e28b6e79
+# https://github.com/ansible-collections/azure/issues/1138
 
 FROM node:14-alpine
 
@@ -16,19 +17,13 @@ RUN apk update && apk upgrade \
     && apk add bash py3-pip \
     && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make \
     && pip --no-cache-dir install -U pip \
-    && pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.15.0/requirements-azure.txt \
     && pip install ansible==7.3.0 \
     && ansible-galaxy collection install azure.azcollection:1.15.0 \
+    && pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.15.0/requirements-azure.txt \
+    && pip install azure-cli==2.34.0 \
     && pip install kubernetes==26.1.0 \
     && ansible-galaxy collection install kubernetes.core:2.4.0 \
-    && ansible-galaxy collection install community.postgresql:2.3.2 \
     && apk del .pipeline-deps \
     && apk del --purge build
-
-ADD https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz /root/helm-v3.11.3-linux-amd64.tar.gz
-
-RUN tar -zxvf /root/helm-v3.11.3-linux-amd64.tar.gz --directory /root/ \
-    && mv /root/linux-amd64/helm /usr/local/bin/helm \
-    && rm -f /root/helm-v3.11.3-linux-amd64.tar.gz
 
 CMD [ "node" ]

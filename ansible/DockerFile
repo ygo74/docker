@@ -51,6 +51,13 @@ RUN apk update && apk upgrade \
     && ansible-galaxy collection install azure.azcollection:1.15.0 \
     && pip install kubernetes==26.1.0 \
     && ansible-galaxy collection install kubernetes.core:2.4.0 \
+    && ansible-galaxy collection install community.postgresql:2.3.2 \
     && apk del .pipeline-deps \
     && apk del --purge build
+
+ADD https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz /root/helm-v3.11.3-linux-amd64.tar.gz
+
+RUN tar -zxvf /root/helm-v3.11.3-linux-amd64.tar.gz --directory /root/ \
+    && mv /root/linux-amd64/helm /usr/local/bin/helm \
+    && rm -f /root/helm-v3.11.3-linux-amd64.tar.gz
 
