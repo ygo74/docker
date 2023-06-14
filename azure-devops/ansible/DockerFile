@@ -1,34 +1,54 @@
 # https://learn.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops
 # https://medium.com/media-glasses/ansible-azure-and-macos-big-sur-f313e28b6e79
 
-FROM node:14-alpine
-
-RUN apk update && apk upgrade \
-    && apk add --no-cache --virtual .pipeline-deps readline linux-pam \
-    && apk add bash sudo shadow \
-    && apk del .pipeline-deps
-
-LABEL "com.azure.dev.pipelines.agent.handler.node.path"="/usr/local/bin/node"
+FROM node:14-alpine as builder
 
 RUN apk update && apk upgrade \
     && apk add --no-cache --virtual .pipeline-deps readline linux-pam \
     && apk add bash sudo shadow \
     && apk add bash py3-pip \
-    && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make \
-    && pip --no-cache-dir install -U pip \
+    && apk add --virtual=build gcc libffi-dev musl-dev openssl-dev python3-dev make
+
+# Create the venv
+RUN python -m venv /opt/venv
+
+# Activate the venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip --no-cache-dir install -U pip \
     && pip install -r https://raw.githubusercontent.com/ansible-collections/azure/v1.14.0/requirements-azure.txt \
     && pip install ansible==7.3.0 \
     && ansible-galaxy collection install azure.azcollection:1.14.0 \
     && pip install kubernetes==26.1.0 \
     && ansible-galaxy collection install kubernetes.core:2.4.0 \
-    && ansible-galaxy collection install community.postgresql:2.3.2 \
-    && apk del .pipeline-deps \
-    && apk del --purge build
+    && ansible-galaxy collection install community.postgresql:2.3.2
 
-ADD https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz /root/helm-v3.11.3-linux-amd64.tar.gz
+ADD https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz \
+    https://storage.googleapis.com/kubernetes-release/release/v1.26.3/bin/linux/amd64/kubectl /root/
 
 RUN tar -zxvf /root/helm-v3.11.3-linux-amd64.tar.gz --directory /root/ \
     && mv /root/linux-amd64/helm /usr/local/bin/helm \
-    && rm -f /root/helm-v3.11.3-linux-amd64.tar.gz
+    && rm -f /root/helm-v3.11.3-linux-amd64.tar.gz \
+    && chmod +x /root/kubectl \
+    && mv /root/kubectl /usr/local/bin/kubectl
+
+
+FROM node:14-alpine
+
+RUN apk update && apk upgrade \
+    && apk add --no-cache --virtual .pipeline-deps readline linux-pam \
+    && apk add bash sudo shadow \
+    && apk add bash py3-pip \
+    && apk del .pipeline-deps
+
+LABEL "com.azure.dev.pipelines.agent.handler.node.path"="/usr/local/bin/node"
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /usr/local/bin/helm /usr/local/bin/helm
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH"
 
 CMD [ "node" ]
