@@ -142,3 +142,40 @@ sudo groupadd docker
 sudo usermod -a -G docker almev0
 sudo systemctl restart docker
 ```
+
+## Operations
+
+### Moving WSL files
+
+sources:
+
+- <https://woshub.com/move-wsl-another-drive-windows/>
+- <https://stackoverflow.com/questions/62441307/how-can-i-change-the-location-of-docker-images-when-using-docker-desktop-on-wsl2>
+
+``` powershell
+wsl --shutdown
+wsl --list -v
+
+  NAME                   STATE           VERSION
+* Ubuntu-22.04           Stopped         2
+  docker-desktop         Stopped         2
+  kali-linux             Stopped         2
+  docker-desktop-data    Stopped         2
+
+wsl --export Ubuntu-22.04 C:\Temp\backup\ubuntu.tar
+wsl --export kali-linux  C:\Temp\backup\kali.tar
+wsl --export docker-desktop C:\Temp\backup\docker-desktop.tar
+wsl --export docker-desktop-data C:\Temp\backup\docker-desktop-data.tar
+
+wsl --unregister Ubuntu-22.04
+wsl --unregister kali-linux
+wsl --unregister docker-desktop
+wsl --unregister docker-desktop-data
+
+
+wsl --import Ubuntu-22.04 c:\WSL\Ubuntu-22.04\ C:\Temp\backup\ubuntu.tar
+wsl --import kali-linux c:\wsl\kali-linux  C:\Temp\backup\kali.tar
+wsl --import docker-desktop c:\wsl\docker-desktop C:\Temp\backup\docker-desktop.tar
+wsl --import docker-desktop-data c:\wsl\docker-desktop-data C:\Temp\backup\docker-desktop-data.tar
+
+```
