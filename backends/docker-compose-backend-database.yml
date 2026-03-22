@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: default_backend_db
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    ports:
+      - "5431:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./volumes/postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d default_backend_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shared-db
+
+  pgadmin:
+    image: dpage/pgadmin4:9.13.0
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.fr
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data_dev:/var/lib/pgadmin
+    networks:
+      - shared-db
+
+
+volumes:
+  pgadmin_data_dev:
+  postgres_data_dev:
+
+networks:
+  shared-db:
+    external: true
+    name: shared-db
