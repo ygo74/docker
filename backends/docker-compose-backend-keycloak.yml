@@ -1,0 +1,82 @@
+version: "3.8"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    entrypoint: [ "/bin/bash", "-c" ]
+    command: >
+      "/opt/keycloak/bin/kc.sh build --health-enabled=true &&
+       /opt/keycloak/bin/kc.sh start-dev --health-enabled=true --metrics-enabled=true"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: true
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
+
+
+      # Enable OTel features (logs = preview, metrics = experimental)
+      KC_FEATURES: "opentelemetry,opentelemetry-logs,opentelemetry-metrics"
+
+      # Log handlers — MUST include "opentelemetry" for OTel log export
+      KC_LOG: "console"
+      KC_LOG_LEVEL: "info"
+
+      # Global OTel settings
+      KC_TELEMETRY_ENDPOINT: "http://otel-keycloak:4317"
+      KC_TELEMETRY_SERVICE_NAME: "keycloak"
+      KC_TELEMETRY_PROTOCOL: "grpc"
+
+      # Tracing
+      KC_TRACING_ENABLED: "true"
+
+      # Logs
+      KC_TELEMETRY_LOGS_ENABLED: "true"
+      KC_TELEMETRY_LOGS_LEVEL: "info"
+
+      # Metrics (also requires metrics-enabled)
+      KC_METRICS_ENABLED: "true"
+      KC_TELEMETRY_METRICS_ENABLED: "true"
+
+
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "9000:9000"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
+      - ./volumes/keycloak/ssl/keycloak.crt:/opt/keycloak/conf/server.crt
+      - ./volumes/keycloak/ssl/keycloak.key:/opt/keycloak/conf/server.key
+    depends_on:
+      - otel-keycloak
+    networks:
+      - shared-db
+      - shared-auth
+
+  # OpenTelemetry Collector
+  otel-keycloak:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./volumes/keycloak/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    networks:
+      - shared-observability
+      - shared-auth
+
+
+volumes:
+  keycloak_data:
+
+networks:
+  shared-observability:
+    external: true
+    name: shared-observability
+  shared-db:
+    external: true
+    name: shared-db
+  shared-auth:
+    external: true
+    name: shared-auth

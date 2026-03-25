@@ -1,0 +1,82 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+  # Scrape Keycloak Prometheus metrics on port 9000
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "keycloak"
+          scrape_interval: 15s
+          metrics_path: /metrics
+          scheme: https
+          tls_config:
+            insecure_skip_verify: true
+          static_configs:
+            - targets: ["keycloak:9000"]
+              labels:
+                service.name: "keycloak"
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+  resource:
+    attributes:
+      - key: service.name
+        action: upsert
+        from_attribute: service.name
+
+  # Add service.name for scraped Keycloak metrics
+  resource/keycloak:
+    attributes:
+      - key: service.name
+        value: "keycloak"
+        action: upsert
+
+exporters:
+  # Forward all telemetry to shared OpenTelemetry Collector
+  otlp/shared:
+    endpoint: otel-collector:4317
+    tls:
+      insecure: true
+
+  # Debug exporter
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/shared]
+
+    # Application metrics (received via OTLP)
+    metrics:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/shared, debug]
+
+    # Keycloak scraped Prometheus metrics
+    metrics/keycloak:
+      receivers: [prometheus]
+      processors: [batch, resource/keycloak]
+      exporters: [otlp/shared]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch, resource]
+      exporters: [otlp/shared]
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
