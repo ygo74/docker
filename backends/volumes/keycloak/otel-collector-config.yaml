@@ -64,7 +64,7 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch, resource]
-      exporters: [otlp/shared, debug]
+      exporters: [otlp/shared]
 
     # Keycloak scraped Prometheus metrics
     metrics/keycloak:
