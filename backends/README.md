@@ -26,14 +26,17 @@ docker compose -f .\backends\docker-compose-backend-database.yml -p backends-dat
 
 ## Redis Cluster
 
+:warning: dependency on backend observability containers (for OTel forwarding)
+
 3-node Redis Cluster (primaries only, no replicas) for local development.
 
-| image          | service name       | container's port(s) | published ports         |
-|:--------------:|:------------------:|:-------------------:|:-----------------------:|
-| redis:7-alpine | redis-node-1       | 6379 / 16379        | 6379:6379 / 16379:16379 |
-| redis:7-alpine | redis-node-2       | 6379 / 16379        | 6380:6379 / 16380:16379 |
-| redis:7-alpine | redis-node-3       | 6379 / 16379        | 6381:6379 / 16381:16379 |
-| redis:7-alpine | redis-cluster-init | N/A                 | N/A                     |
+| image                                        | service name       | container's port(s) | published ports          |
+|:--------------------------------------------:|:------------------:|:-------------------:|:------------------------:|
+| redis:7-alpine                               | redis-node-1       | 6379 / 16379        | 6379:6379 / 16379:16379  |
+| redis:7-alpine                               | redis-node-2       | 6379 / 16379        | 6380:6379 / 16380:16379  |
+| redis:7-alpine                               | redis-node-3       | 6379 / 16379        | 6381:6379 / 16381:16379  |
+| redis:7-alpine                               | redis-cluster-init | N/A                 | N/A                      |
+| otel/opentelemetry-collector-contrib:latest   | otel-redis         | 13133               | N/A                      |
 
 > **ℹ️ Note**: The `redis-cluster-init` service is a one-shot container that bootstraps the cluster
 > using `redis-cli --cluster create` with `--cluster-replicas 0` (no secondaries).
@@ -80,6 +83,50 @@ When connecting from the host machine, use:
 ```
 localhost:6379, localhost:6380, localhost:6381
 ```
+
+### Redis OpenTelemetry Configuration
+
+Source: <https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/redisreceiver/README.md>
+
+Redis OSS does **not** natively export OpenTelemetry data. Observability is achieved through a
+dedicated `otel-redis` collector that uses the built-in **`redis` receiver** from
+`opentelemetry-collector-contrib`. This receiver connects directly to each Redis node
+via the `INFO` command — **no external exporter sidecar needed**.
+
+```
+redis-node-1 ←─ INFO ─┐
+redis-node-2 ←─ INFO ─┤── otel-redis (redis receiver ×3) ── OTLP ──→ otel-collector (shared)
+redis-node-3 ←─ INFO ─┘                                                      ↓
+                                                                       prometheus → grafana
+```
+
+| Concern     | Solution                                                                              |
+|:-----------:|:-------------------------------------------------------------------------------------:|
+| **Metrics** | `otel-redis` with `redis` receiver (one per node) → shared `otel-collector`           |
+| **Traces**  | Client-side instrumentation (`opentelemetry-instrumentation-redis`)                    |
+| **Logs**    | Redis writes to stdout, collected by Docker logging driver                            |
+
+**Grafana dashboards** for Redis:
+- **Provisioned**: `Redis Cluster — OpenTelemetry` (auto-loaded at startup via `volumes/grafana/provisioning/dashboards/redis-cluster.json`)
+- [Redis Dashboard for Prometheus (ID 763)](https://grafana.com/grafana/dashboards/763)
+- [Redis Cluster Overview (ID 11835)](https://grafana.com/grafana/dashboards/11835)
+
+### Redis vs Redis Enterprise — Licence note
+
+| Produit | Licence | Métriques Prometheus natives | Coût |
+|---|---|---|---|
+| **Redis ≤ 7.x** (ce qu'on utilise) | BSD 3-Clause | ❌ (besoin de `redis-exporter`) | Gratuit |
+| **Redis 8.0+** | RSALv2 / SSPLv1 | ❌ (toujours besoin de `redis-exporter`) | Gratuit à l'usage, mais pas BSD |
+| **Redis Enterprise Software** | Commercial | ✅ endpoint `/v2` natif | Payant |
+| **Valkey 8+** (fork BSD) | BSD 3-Clause | ❌ (besoin de `redis-exporter`) | Gratuit |
+
+> **ℹ️** Les docs Redis sur `redis.io/docs/latest/operate/rs/` (endpoint `/metrics`, `/v2`,
+> dashboards intégrés) concernent **Redis Enterprise Software** (payant).
+> Redis OSS (`redis:7-alpine`) ne dispose pas de ces fonctionnalités. C'est pourquoi
+> nous utilisons `oliver006/redis_exporter` comme sidecar pour exposer les métriques.
+
+> **💡 Alternative BSD** : Si la licence RSALv2 de Redis 8 pose problème, vous pouvez utiliser
+> `valkey/valkey:8-alpine` (fork BSD maintenu par la Linux Foundation) en remplacement drop-in.
 
 ## Observability
 

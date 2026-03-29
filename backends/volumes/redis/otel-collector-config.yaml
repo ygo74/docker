@@ -1,0 +1,56 @@
+receivers:
+  # Native Redis receiver — uses Redis INFO command directly
+  # One receiver instance per cluster node
+  redis/node-1:
+    endpoint: "redis-node-1:6379"
+    collection_interval: 15s
+
+  redis/node-2:
+    endpoint: "redis-node-2:6379"
+    collection_interval: 15s
+
+  redis/node-3:
+    endpoint: "redis-node-3:6379"
+    collection_interval: 15s
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+
+  resource:
+    attributes:
+      - key: service.name
+        value: "redis-cluster"
+        action: upsert
+      - key: service.namespace
+        value: "backends"
+        action: upsert
+
+  transform:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(attributes["service_name"], "redis-cluster")
+          - set(attributes["service_namespace"], "backends")
+
+exporters:
+  otlp/shared:
+    endpoint: otel-collector:4317
+    tls:
+      insecure: true
+
+  debug:
+    verbosity: basic
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+
+service:
+  extensions: [health_check]
+  pipelines:
+    metrics:
+      receivers: [redis/node-1, redis/node-2, redis/node-3]
+      processors: [batch, resource, transform]
+      exporters: [otlp/shared, debug]

@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   redis-node-1:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     command: >
       redis-server
       --port 6379
@@ -12,9 +12,11 @@ services:
       --appendonly yes
       --bind 0.0.0.0
       --protected-mode no
+      --maxclients 10000 --timeout 1800
     ports:
       - "6379:6379"
       - "16379:16379"
+      - "8070:8070"
     volumes:
       - redis_node_1_data:/data
     healthcheck:
@@ -27,7 +29,7 @@ services:
         ipv4_address: 172.30.0.11
 
   redis-node-2:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     command: >
       redis-server
       --port 6379
@@ -37,6 +39,7 @@ services:
       --appendonly yes
       --bind 0.0.0.0
       --protected-mode no
+      --maxclients 10000 --timeout 1800
     ports:
       - "6380:6379"
       - "16380:16379"
@@ -52,7 +55,7 @@ services:
         ipv4_address: 172.30.0.12
 
   redis-node-3:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     command: >
       redis-server
       --port 6379
@@ -62,6 +65,7 @@ services:
       --appendonly yes
       --bind 0.0.0.0
       --protected-mode no
+      --maxclients 10000 --timeout 1800
     ports:
       - "6381:6379"
       - "16381:16379"
@@ -77,7 +81,7 @@ services:
         ipv4_address: 172.30.0.13
 
   redis-cluster-init:
-    image: redis:7-alpine
+    image: redis:8.6-alpine
     depends_on:
       redis-node-1:
         condition: service_healthy
@@ -94,6 +98,25 @@ services:
         ipv4_address: 172.30.0.10
     restart: "no"
 
+  # Dedicated OpenTelemetry Collector for Redis
+  # Uses the built-in redis receiver (INFO command) — no exporter sidecar needed
+  otel-redis:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./volumes/redis/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    depends_on:
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-node-3:
+        condition: service_healthy
+    networks:
+      - shared-redis
+      - shared-observability
+    restart: unless-stopped
+
 volumes:
   redis_node_1_data:
   redis_node_2_data:
@@ -103,3 +126,6 @@ networks:
   shared-redis:
     external: true
     name: shared-redis
+  shared-observability:
+    external: true
+    name: shared-observability
