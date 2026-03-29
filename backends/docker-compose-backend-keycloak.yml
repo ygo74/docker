@@ -12,8 +12,13 @@ services:
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: true
       KC_HTTP_ENABLED: true
-      KC_HOSTNAME_STRICT: false
-      KC_HOSTNAME_STRICT_HTTPS: false
+
+      # Hostname configuration
+      # Frontend URL: used for all browser-facing URLs (redirects, well-known endpoints)
+      KC_HOSTNAME: http://localhost:8080
+      # Allow backchannel (server-to-server) requests to use the request hostname dynamically
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: true
+
       KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
       KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
 

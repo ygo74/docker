@@ -1,0 +1,105 @@
+version: "3.8"
+
+services:
+  redis-node-1:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --port 6379
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --bind 0.0.0.0
+      --protected-mode no
+    ports:
+      - "6379:6379"
+      - "16379:16379"
+    volumes:
+      - redis_node_1_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      shared-redis:
+        ipv4_address: 172.30.0.11
+
+  redis-node-2:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --port 6379
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --bind 0.0.0.0
+      --protected-mode no
+    ports:
+      - "6380:6379"
+      - "16380:16379"
+    volumes:
+      - redis_node_2_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      shared-redis:
+        ipv4_address: 172.30.0.12
+
+  redis-node-3:
+    image: redis:7-alpine
+    command: >
+      redis-server
+      --port 6379
+      --cluster-enabled yes
+      --cluster-config-file nodes.conf
+      --cluster-node-timeout 5000
+      --appendonly yes
+      --bind 0.0.0.0
+      --protected-mode no
+    ports:
+      - "6381:6379"
+      - "16381:16379"
+    volumes:
+      - redis_node_3_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6379", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      shared-redis:
+        ipv4_address: 172.30.0.13
+
+  redis-cluster-init:
+    image: redis:7-alpine
+    depends_on:
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-node-3:
+        condition: service_healthy
+    volumes:
+      - ./volumes/redis/cluster-init.sh:/usr/local/bin/cluster-init.sh:ro
+    entrypoint: ["/bin/sh", "/usr/local/bin/cluster-init.sh"]
+    command: []
+    networks:
+      shared-redis:
+        ipv4_address: 172.30.0.10
+    restart: "no"
+
+volumes:
+  redis_node_1_data:
+  redis_node_2_data:
+  redis_node_3_data:
+
+networks:
+  shared-redis:
+    external: true
+    name: shared-redis
